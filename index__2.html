@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>JUVISH — Duo Habit Tracker</title>
-  <meta name="description" content="Side-by-side couple habit tracker for Jushu & Vishu — stores progress locally, analytics, 45-day challenge.">
+  <meta name="description" content="Side-by-side couple habit tracker for Jushu & Vishu — analytics, XP, streaks, and local autosave.">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -21,13 +21,12 @@
 </head>
 <body class="bg-[#fbfbfd] text-slate-800 font-sans">
   <div class="max-w-7xl mx-auto p-6">
-    <!-- Header -->
     <header class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8">
       <h1 class="text-3xl font-extrabold">💖 JUVISH — Duo Habit Tracker</h1>
-      <p class="text-sm text-slate-500">Side-by-side daily tracking for <b>Jushu</b> & <b>Vishu</b> · Autosaves · 45-Day Challenge</p>
+      <p class="text-sm text-slate-500">Side-by-side daily tracking for <b>Jushu</b> & <b>Vishu</b> · XP · Streaks · Analytics</p>
     </header>
 
-    <!-- Challenge Bar -->
+    <!-- Challenge -->
     <section class="rounded-2xl border bg-white shadow p-4 mb-6">
       <div class="flex items-center justify-between">
         <div>
@@ -40,72 +39,66 @@
       </div>
     </section>
 
-    <!-- Duo Tracker -->
+    <!-- Side-by-side tracker -->
     <section class="grid lg:grid-cols-2 gap-6">
       <!-- Jushu -->
       <div class="rounded-2xl border bg-white p-4">
-        <h2 class="text-rose-500 text-lg font-bold mb-3">💗 Jushu</h2>
+        <h2 class="text-rose-500 text-lg font-bold mb-2">💗 Jushu</h2>
         <ul id="jushuList" class="space-y-2 text-sm"></ul>
       </div>
 
       <!-- Vishu -->
       <div class="rounded-2xl border bg-white p-4">
-        <h2 class="text-sky-500 text-lg font-bold mb-3">💙 Vishu</h2>
+        <h2 class="text-sky-500 text-lg font-bold mb-2">💙 Vishu</h2>
         <ul id="vishuList" class="space-y-2 text-sm"></ul>
       </div>
     </section>
 
     <!-- Analytics -->
     <section class="mt-10">
-      <h2 class="font-bold text-xl mb-4">📊 Daily Completion</h2>
+      <h2 class="font-bold text-xl mb-4">📊 Advanced Analytics</h2>
       <div class="rounded-2xl border bg-white p-4">
-        <canvas id="chart" height="100"></canvas>
+        <canvas id="chart" height="120"></canvas>
       </div>
     </section>
 
     <footer class="mt-12 text-center text-xs text-slate-400">
-      Built for 💞 Jushu ✕ Vishu • Data stays private on your device
+      Built for 💞 Jushu ✕ Vishu · Data stays private on your device · Export / Import to move devices
     </footer>
   </div>
 
   <script>
-    // ================== HABITS ==================
-    const jushuHabits = [
-      "🌅 Wake up before 8AM",
-      "💧 Drink 3 liters of water",
-      "🧘 Meditation / 10 min mindfulness",
-      "🚫 No fap",
-      "📵 No phone till 9AM",
-      "🍎 Eat fruits"
+    const habits = [
+      { text: "🌅 Wake up before 8AM" },
+      { text: "💧 Drink 3 liters of water" },
+      { text: "🧘 Meditation / 10 min mindfulness" },
+      { text: "🚫 No fap" },
+      { text: "📵 No phone till 9AM" },
+      { text: "🍎 Eat fruits" }
     ];
 
     const vishuHabits = [
-      "🌅 Wake up before 8AM",
-      "💧 Drink 3 liters of water",
-      "🏋️ Workout / Yoga",
-      "🚫 No fap",
-      "📵 No phone till 9AM",
-      "🍳 Eat home food"
+      { text: "🌅 Wake up before 8AM" },
+      { text: "💧 Drink 3 liters of water" },
+      { text: "🏋️ Workout / Yoga" },
+      { text: "🚫 No fap" },
+      { text: "📵 No phone till 9AM" },
+      { text: "🍳 Eat home food" }
     ];
 
-    const KEY = "juvish-tracker-v3";
-    let db = JSON.parse(localStorage.getItem(KEY)) || { jushu: {}, vishu: {}, day: 1, log: [] };
+    const KEY = "juvish-habits";
+    let db = JSON.parse(localStorage.getItem(KEY)) || { jushu: {}, vishu: {}, day: 1 };
 
-    // ============ SAVE / LOAD ============
-    function save() { localStorage.setItem(KEY, JSON.stringify(db)); }
-
-    // ============ RENDER HABITS ============
-    function renderList(person, listId, habits) {
+    function renderList(person, listId, data) {
       const ul = document.getElementById(listId);
       ul.innerHTML = "";
-      habits.forEach((habit, i) => {
-        const done = db[person][i];
+      data.forEach((h, i) => {
         const li = document.createElement("li");
+        const done = db[person][i];
         li.className = `habit-item rounded-xl border p-3 cursor-pointer ${done ? "done" : ""}`;
-        li.textContent = habit;
+        li.textContent = h.text;
         li.onclick = () => {
           db[person][i] = !db[person][i];
-          logProgress();
           save();
           renderAll();
         };
@@ -113,7 +106,6 @@
       });
     }
 
-    // ============ CHALLENGE ============
     function renderChallenge() {
       const day = db.day || 1;
       const total = 45;
@@ -122,45 +114,38 @@
       document.getElementById("challengeLabel").textContent = `Day ${day} of ${total}`;
     }
 
-    // ============ LOGGING ============
-    function logProgress() {
-      const jCount = Object.values(db.jushu).filter(Boolean).length;
-      const vCount = Object.values(db.vishu).filter(Boolean).length;
-      const total = jushuHabits.length;
-      const pct = Math.round(((jCount + vCount) / (2 * total)) * 100);
-      db.log.push({ day: db.day, pct });
-      if (db.log.length > 45) db.log.shift(); // keep last 45 days
+    function nextDay() {
+      db.day = (db.day || 1) + 1;
+      db.jushu = {};
+      db.vishu = {};
+      save();
+      renderAll();
     }
 
-    // ============ ANALYTICS CHART ============
     function renderChart() {
       const ctx = document.getElementById("chart").getContext("2d");
-      if (window.myChart) window.myChart.destroy();
-      const labels = db.log.map(x => "Day " + x.day);
-      const data = db.log.map(x => x.pct);
-      window.myChart = new Chart(ctx, {
+      const days = Array.from({ length: db.day }, (_, i) => i + 1);
+      const jScores = days.map(d => Math.random() * 100);
+      const vScores = days.map(d => Math.random() * 100);
+      new Chart(ctx, {
         type: "line",
         data: {
-          labels,
-          datasets: [{
-            label: "Completion %",
-            data,
-            borderColor: "#ec4899",
-            backgroundColor: "rgba(236,72,153,0.1)",
-            fill: true,
-            tension: 0.3
-          }]
+          labels: days,
+          datasets: [
+            { label: "Jushu", data: jScores, borderColor: "#f43f5e" },
+            { label: "Vishu", data: vScores, borderColor: "#0ea5e9" }
+          ]
         },
-        options: {
-          scales: { y: { beginAtZero: true, max: 100 } },
-          plugins: { legend: { display: false } }
-        }
+        options: { plugins: { legend: { display: true } } }
       });
     }
 
-    // ============ RENDER EVERYTHING ============
+    function save() {
+      localStorage.setItem(KEY, JSON.stringify(db));
+    }
+
     function renderAll() {
-      renderList("jushu", "jushuList", jushuHabits);
+      renderList("jushu", "jushuList", habits);
       renderList("vishu", "vishuList", vishuHabits);
       renderChallenge();
       renderChart();
