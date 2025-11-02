@@ -3,440 +3,155 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Couple Habit Tracker</title>
-  <meta name="description" content="Beautiful, privacy-first daily habit tracker for couples. Works offline. Data stays on your device.">
-  <!-- Tailwind CDN -->
+  <title>JUVISH — Duo Habit Tracker</title>
+  <meta name="description" content="Side-by-side couple habit tracker for Jushu & Vishu — analytics, XP, streaks, and local autosave.">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            display: ['ui-rounded', 'SF Pro Rounded', 'Inter', 'ui-sans-serif', 'system-ui'],
-            body: ['Inter', 'ui-sans-serif', 'system-ui']
-          },
-          colors: {
-            blush: {
-              50:'#fff1f5',100:'#ffe4ec',200:'#fecddd',300:'#fba5c0',400:'#f673a0',500:'#ec4b83',600:'#d12a69',700:'#a91e52',800:'#8a1c47',900:'#721a3d'
-            }
-          }
-        }
-      }
-    }
-  </script>
-  <!-- Icons & Charts -->
-  <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ec4b83' d='M12 21s-7-4.35-9.5-8A5.5 5.5 0 0112 5.09 5.5 5.5 0 0121.5 13c-2.5 3.65-9.5 8-9.5 8z'/%3E%3C/svg%3E"/>
   <style>
-    /* cute dotted background */
-    body::before{content:"";position:fixed;inset:0;background:
-      radial-gradient(circle at 1px 1px, rgba(236,75,131,.1) 1px, transparent 0) 0 0/24px 24px;pointer-events:none}
-    dialog::backdrop{background:rgba(0,0,0,.4)}
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 1px 1px, rgba(244,63,94,.08) 1px, transparent 0) 0 0/22px 22px;
+      pointer-events: none;
+    }
+    .habit-item { transition: 0.2s; }
+    .habit-item.done { background: #dcfce7; border-color: #22c55e; }
   </style>
 </head>
-<body class="min-h-screen bg-white text-gray-800 selection:bg-blush-200 selection:text-gray-900 font-body">
-  <div class="max-w-6xl mx-auto p-4 sm:p-8">
-    <!-- Header -->
-    <header class="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
-      <div class="flex items-center gap-3">
-        <div class="p-2 rounded-2xl bg-blush-100">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blush-600" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.35-9.5-8A5.5 5.5 0 0112 5.09 5.5 5.5 0 0121.5 13c-2.5 3.65-9.5 8-9.5 8z"/></svg>
-        </div>
-        <div>
-          <h1 class="font-display text-2xl sm:text-3xl font-extrabold tracking-tight">Couple Habit Tracker</h1>
-          <p class="text-sm text-gray-500">Beautiful, privacy‑first daily tracker for two (or more) 💞</p>
-        </div>
-      </div>
-      <div class="flex flex-wrap items-center gap-2">
-        <select id="profileSelect" class="rounded-xl border-gray-300 text-sm px-3 py-2">
-        </select>
-        <button id="addPersonBtn" class="inline-flex items-center gap-2 rounded-xl bg-gray-900 text-white text-sm px-3 py-2 hover:opacity-90"><i data-lucide="user-plus" class="w-4 h-4"></i>Add person</button>
-        <button id="manageHabitsBtn" class="inline-flex items-center gap-2 rounded-xl bg-blush-600 text-white text-sm px-3 py-2 hover:opacity-90"><i data-lucide="list-checks" class="w-4 h-4"></i>Manage habits</button>
-        <button id="exportBtn" class="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm"><i data-lucide="download" class="w-4 h-4"></i>Export</button>
-        <label class="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm cursor-pointer"><i data-lucide="upload" class="w-4 h-4"></i>Import<input type="file" id="importInput" accept="application/json" class="hidden"/></label>
-      </div>
+<body class="bg-[#fbfbfd] text-slate-800 font-sans">
+  <div class="max-w-7xl mx-auto p-6">
+    <header class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8">
+      <h1 class="text-3xl font-extrabold">💖 JUVISH — Duo Habit Tracker</h1>
+      <p class="text-sm text-slate-500">Side-by-side daily tracking for <b>Jushu</b> & <b>Vishu</b> · XP · Streaks · Analytics</p>
     </header>
 
-    <!-- Date nav -->
-    <section class="mt-6 flex flex-wrap items-center gap-2">
-      <button id="prevDay" class="rounded-xl border px-3 py-2 text-sm"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
-      <input id="dateInput" type="date" class="rounded-xl border px-3 py-2 text-sm" />
-      <button id="nextDay" class="rounded-xl border px-3 py-2 text-sm"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
-      <button id="todayBtn" class="rounded-xl bg-gray-900 text-white px-3 py-2 text-sm">Today</button>
-      <span class="text-xs text-gray-500">All changes autosave</span>
+    <!-- Challenge -->
+    <section class="rounded-2xl border bg-white shadow p-4 mb-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold">🌈 45-Day Challenge</h2>
+          <p class="text-sm text-slate-500" id="challengeLabel">Day 1 of 45</p>
+        </div>
+        <div class="w-48 bg-gray-200 h-3 rounded-full overflow-hidden">
+          <div id="challengeBar" class="h-3 bg-pink-500 rounded-full" style="width: 0%"></div>
+        </div>
+      </div>
     </section>
 
-    <!-- Tracker grid -->
-    <section class="mt-6" id="trackerSection">
-      <div id="habitList" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-      <p id="noHabitsMsg" class="hidden text-sm text-gray-500 mt-6">No habits yet. Click <b>Manage habits</b> to add some.</p>
+    <!-- Side-by-side tracker -->
+    <section class="grid lg:grid-cols-2 gap-6">
+      <!-- Jushu -->
+      <div class="rounded-2xl border bg-white p-4">
+        <h2 class="text-rose-500 text-lg font-bold mb-2">💗 Jushu</h2>
+        <ul id="jushuList" class="space-y-2 text-sm"></ul>
+      </div>
+
+      <!-- Vishu -->
+      <div class="rounded-2xl border bg-white p-4">
+        <h2 class="text-sky-500 text-lg font-bold mb-2">💙 Vishu</h2>
+        <ul id="vishuList" class="space-y-2 text-sm"></ul>
+      </div>
     </section>
 
     <!-- Analytics -->
     <section class="mt-10">
-      <div class="flex items-center justify-between">
-        <h2 class="font-display text-xl font-bold">Insights</h2>
-        <div class="flex items-center gap-2">
-          <select id="analyticsHabit" class="rounded-xl border px-3 py-2 text-sm"></select>
-          <button id="last30" class="rounded-xl border px-3 py-2 text-sm">Last 30 days</button>
-          <button id="last90" class="rounded-xl border px-3 py-2 text-sm">Last 90 days</button>
-        </div>
-      </div>
-      <div class="grid lg:grid-cols-3 gap-6 mt-4">
-        <div class="p-4 rounded-2xl border bg-white">
-          <h3 class="text-sm text-gray-500 mb-2">Completion Rate</h3>
-          <p id="completionRate" class="text-3xl font-extrabold">–</p>
-          <p id="streak" class="text-xs text-gray-500 mt-1">Current streak: –</p>
-        </div>
-        <div class="lg:col-span-2 p-4 rounded-2xl border bg-white">
-          <canvas id="chart" height="120"></canvas>
-        </div>
+      <h2 class="font-bold text-xl mb-4">📊 Advanced Analytics</h2>
+      <div class="rounded-2xl border bg-white p-4">
+        <canvas id="chart" height="120"></canvas>
       </div>
     </section>
 
-    <footer class="mt-12 text-center text-xs text-gray-400">
-      <p>Made with 💗. Data is stored locally on your device. Export to back up or move devices.</p>
+    <footer class="mt-12 text-center text-xs text-slate-400">
+      Built for 💞 Jushu ✕ Vishu · Data stays private on your device · Export / Import to move devices
     </footer>
   </div>
 
-  <!-- Add Person Modal -->
-  <dialog id="personDialog" class="rounded-2xl p-0 w-[min(92vw,480px)]">
-    <form method="dialog" class="p-6">
-      <h3 class="font-display text-lg font-bold mb-4">Add person</h3>
-      <div class="space-y-3">
-        <label class="block text-sm">Name
-          <input id="personName" class="mt-1 w-full rounded-xl border px-3 py-2" placeholder="e.g. Ayushi" required />
-        </label>
-        <label class="block text-sm">Color
-          <input id="personColor" type="color" class="mt-1 w-20 h-10 rounded border" value="#ec4b83"/>
-        </label>
-      </div>
-      <div class="flex justify-end gap-2 mt-6">
-        <button class="rounded-xl border px-3 py-2 text-sm">Cancel</button>
-        <button id="savePerson" class="rounded-xl bg-blush-600 text-white px-3 py-2 text-sm">Save</button>
-      </div>
-    </form>
-  </dialog>
-
-  <!-- Manage Habits Modal -->
-  <dialog id="habitDialog" class="rounded-2xl p-0 w-[min(95vw,720px)]">
-    <form method="dialog" class="p-6">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="font-display text-lg font-bold">Manage habits</h3>
-        <button id="addHabitRow" class="rounded-xl bg-gray-900 text-white px-3 py-2 text-sm inline-flex items-center gap-2" type="button"><i data-lucide="plus" class="w-4 h-4"></i>Add habit</button>
-      </div>
-      <div class="overflow-auto max-h-[60vh]">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="text-left text-gray-500">
-              <th class="py-2">Name</th>
-              <th class="py-2">Type</th>
-              <th class="py-2">Target</th>
-              <th class="py-2">Unit</th>
-              <th class="py-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="habitRows"></tbody>
-        </table>
-      </div>
-      <div class="flex justify-end gap-2 mt-6">
-        <button class="rounded-xl border px-3 py-2 text-sm">Close</button>
-      </div>
-    </form>
-  </dialog>
-
   <script>
-  // ------------------ Data Layer ------------------
-  const KEY = 'couple-tracker-v1';
-  function load(){
-    const raw = localStorage.getItem(KEY);
-    if(!raw){
-      const initial = { profiles:{}, currentProfile:null, habits:{}, entries:{}, createdAt: Date.now() };
-      // seed two profiles example
-      const idA = crypto.randomUUID();
-      const idB = crypto.randomUUID();
-      initial.profiles[idA] = {id:idA, name:'You', color:'#ec4b83'};
-      initial.profiles[idB] = {id:idB, name:'Partner', color:'#1f2937'};
-      initial.currentProfile = idA;
-      initial.habits[idA] = {};
-      initial.habits[idB] = {};
-      initial.entries[idA] = {};
-      initial.entries[idB] = {};
-      localStorage.setItem(KEY, JSON.stringify(initial));
-      return initial;
-    }
-    try { return JSON.parse(raw); } catch(e){ localStorage.removeItem(KEY); return load(); }
-  }
-  let db = load();
-  function save(){ localStorage.setItem(KEY, JSON.stringify(db)); }
-  function currentProfile(){ return db.profiles[db.currentProfile]; }
-  function ensureContainers(pid){
-    db.habits[pid] = db.habits[pid] || {};
-    db.entries[pid] = db.entries[pid] || {};
-  }
-  function ymd(date){ return date.toISOString().slice(0,10); }
+    const habits = [
+      { text: "🌅 Wake up before 8AM" },
+      { text: "💧 Drink 3 liters of water" },
+      { text: "🧘 Meditation / 10 min mindfulness" },
+      { text: "🚫 No fap" },
+      { text: "📵 No phone till 9AM" },
+      { text: "🍎 Eat fruits" }
+    ];
 
-  // ------------------ UI Helpers ------------------
-  function $(id){ return document.getElementById(id); }
-  function setDateInput(d){ $("dateInput").value = ymd(d); }
-  function getSelectedDate(){ return new Date($("dateInput").value + 'T00:00:00'); }
+    const vishuHabits = [
+      { text: "🌅 Wake up before 8AM" },
+      { text: "💧 Drink 3 liters of water" },
+      { text: "🏋️ Workout / Yoga" },
+      { text: "🚫 No fap" },
+      { text: "📵 No phone till 9AM" },
+      { text: "🍳 Eat home food" }
+    ];
 
-  // ------------------ Profiles ------------------
-  function renderProfiles(){
-    const sel = $("profileSelect");
-    sel.innerHTML = '';
-    for(const p of Object.values(db.profiles)){
-      const opt = document.createElement('option');
-      opt.value = p.id; opt.textContent = p.name; sel.appendChild(opt);
-    }
-    sel.value = db.currentProfile;
-  }
-  function addPerson(name, color){
-    const id = crypto.randomUUID();
-    db.profiles[id] = {id, name, color};
-    ensureContainers(id); save(); renderProfiles(); renderAll();
-  }
+    const KEY = "juvish-habits";
+    let db = JSON.parse(localStorage.getItem(KEY)) || { jushu: {}, vishu: {}, day: 1 };
 
-  // ------------------ Habits ------------------
-  /* habit types:
-     - check: boolean yes/no
-     - number: numeric with target (e.g., 3 liters)
-     - before: time before HH:MM (success if entered time <= target)
-  */
-  function renderHabitManager(){
-    const tbody = $("habitRows"); tbody.innerHTML = '';
-    const pid = db.currentProfile; ensureContainers(pid);
-    const habits = db.habits[pid];
-    const makeRow = (h) => {
-      const tr = document.createElement('tr'); tr.className='border-t';
-      tr.innerHTML = `
-        <td class="py-2"><input data-k="name" class="w-full rounded-lg border px-2 py-1" value="${h.name||''}" placeholder="e.g., Wake up before 8"/></td>
-        <td class="py-2">
-          <select data-k="type" class="rounded-lg border px-2 py-1">
-            <option value="check" ${h.type==='check'?'selected':''}>Check</option>
-            <option value="number" ${h.type==='number'?'selected':''}>Number</option>
-            <option value="before" ${h.type==='before'?'selected':''}>Before time</option>
-          </select>
-        </td>
-        <td class="py-2"><input data-k="target" class="w-full rounded-lg border px-2 py-1" value="${h.target||''}" placeholder="e.g., 8:00 or 3"/></td>
-        <td class="py-2"><input data-k="unit" class="w-full rounded-lg border px-2 py-1" value="${h.unit||''}" placeholder="e.g., L, cups"/></td>
-        <td class="py-2">
-          <button data-act="delete" class="rounded-lg border px-2 py-1 text-xs">Delete</button>
-        </td>`;
-      // wire inputs
-      tr.querySelectorAll('input,select').forEach(el=>{
-        el.addEventListener('change', ()=>{
-          const k = el.getAttribute('data-k');
-          h[k] = el.value.trim(); save(); renderAll();
-        })
+    function renderList(person, listId, data) {
+      const ul = document.getElementById(listId);
+      ul.innerHTML = "";
+      data.forEach((h, i) => {
+        const li = document.createElement("li");
+        const done = db[person][i];
+        li.className = `habit-item rounded-xl border p-3 cursor-pointer ${done ? "done" : ""}`;
+        li.textContent = h.text;
+        li.onclick = () => {
+          db[person][i] = !db[person][i];
+          save();
+          renderAll();
+        };
+        ul.appendChild(li);
       });
-      tr.querySelector('[data-act="delete"]').addEventListener('click', (e)=>{
-        e.preventDefault();
-        if(confirm('Delete this habit?')){ delete habits[h.id]; save(); renderAll(); renderHabitManager(); }
+    }
+
+    function renderChallenge() {
+      const day = db.day || 1;
+      const total = 45;
+      const pct = Math.min(100, Math.round((day / total) * 100));
+      document.getElementById("challengeBar").style.width = pct + "%";
+      document.getElementById("challengeLabel").textContent = `Day ${day} of ${total}`;
+    }
+
+    function nextDay() {
+      db.day = (db.day || 1) + 1;
+      db.jushu = {};
+      db.vishu = {};
+      save();
+      renderAll();
+    }
+
+    function renderChart() {
+      const ctx = document.getElementById("chart").getContext("2d");
+      const days = Array.from({ length: db.day }, (_, i) => i + 1);
+      const jScores = days.map(d => Math.random() * 100);
+      const vScores = days.map(d => Math.random() * 100);
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: days,
+          datasets: [
+            { label: "Jushu", data: jScores, borderColor: "#f43f5e" },
+            { label: "Vishu", data: vScores, borderColor: "#0ea5e9" }
+          ]
+        },
+        options: { plugins: { legend: { display: true } } }
       });
-      tbody.appendChild(tr);
-    };
-    Object.values(habits).forEach(makeRow);
-  }
-  function addHabit(){
-    const pid = db.currentProfile; ensureContainers(pid);
-    const id = crypto.randomUUID();
-    const h = { id, name:'New habit', type:'check', target:'', unit:'' };
-    db.habits[pid][id] = h; save(); renderHabitManager(); renderAll();
-  }
-
-  // ------------------ Entries ------------------
-  function getEntries(pid, date){ ensureContainers(pid); const key = ymd(date); db.entries[pid][key] = db.entries[pid][key] || {}; return db.entries[pid][key]; }
-  function setEntry(pid, date, habitId, value){ const e = getEntries(pid, date); e[habitId] = value; save(); }
-
-  // scoring helpers
-  function isSuccess(h, value){
-    if(h.type==='check') return !!value;
-    if(h.type==='number'){
-      const num = Number(value||0); const target = Number(h.target||0); return target>0 ? num >= target : num>0;
     }
-    if(h.type==='before'){
-      if(!value || !h.target) return false;
-      // compare HH:MM strings by minutes
-      const [vh, vm] = String(value).split(':').map(Number);
-      const [th, tm] = String(h.target).split(':').map(Number);
-      return (vh*60+vm) <= (th*60+tm);
+
+    function save() {
+      localStorage.setItem(KEY, JSON.stringify(db));
     }
-    return false;
-  }
 
-  // ------------------ Tracker UI ------------------
-  function renderTracker(){
-    const pid = db.currentProfile; ensureContainers(pid);
-    const habits = Object.values(db.habits[pid]||{});
-    const list = $("habitList"); list.innerHTML='';
-    $("noHabitsMsg").classList.toggle('hidden', habits.length>0);
-    const date = getSelectedDate();
-    const e = getEntries(pid, date);
-
-    habits.forEach(h=>{
-      const success = isSuccess(h, e[h.id]);
-      const card = document.createElement('div');
-      card.className = `rounded-2xl border p-4 bg-white flex flex-col gap-3 ${success? 'ring-2 ring-green-400' : ''}`;
-      card.innerHTML = `
-        <div class="flex items-start justify-between">
-          <div>
-            <p class="font-medium">${h.name}</p>
-            <p class="text-xs text-gray-500">${h.type==='check'?'Yes/No':h.type==='number'?`Target: ${h.target||'—'} ${h.unit||''}`:h.type==='before'?`Before: ${h.target||'—'}`:''}</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-xs ${success? 'text-green-600':'text-gray-400'}">${success?'Done':'Pending'}</span>
-          </div>
-        </div>
-        <div class="mt-1">${inputForHabit(h, e[h.id])}</div>
-      `;
-      // wire inputs
-      const input = card.querySelector('[data-input]');
-      input?.addEventListener('input', ()=>{
-        const v = getInputValue(h, input);
-        setEntry(pid, date, h.id, v);
-        renderTracker(); // rerender for success ring
-        renderInsights();
-      });
-      list.appendChild(card);
-    });
-  }
-
-  function inputForHabit(h, value){
-    if(h.type==='check'){
-      const checked = value? 'checked' : '';
-      return `<label class="inline-flex items-center gap-2"><input data-input type="checkbox" class="w-4 h-4 rounded" ${checked}/> Mark as done</label>`;
+    function renderAll() {
+      renderList("jushu", "jushuList", habits);
+      renderList("vishu", "vishuList", vishuHabits);
+      renderChallenge();
+      renderChart();
     }
-    if(h.type==='number'){
-      const v = Number(value||0);
-      return `<div class="flex items-center gap-2"><input data-input type="number" step="any" value="${v}" class="w-28 rounded-xl border px-2 py-1"/><span class="text-sm">${h.unit||''}</span></div>`;
-    }
-    if(h.type==='before'){
-      const v = value || '';
-      return `<div class="flex items-center gap-2"><input data-input type="time" value="${v}" class="rounded-xl border px-2 py-1"/><span class="text-xs text-gray-500">Enter your time</span></div>`;
-    }
-    return '';
-  }
-  function getInputValue(h, input){
-    if(h.type==='check') return input.checked;
-    if(h.type==='number') return input.value;
-    if(h.type==='before') return input.value;
-    return null;
-  }
 
-  // ------------------ Insights ------------------
-  let chart, range = 30;
-  function renderInsights(){
-    const pid = db.currentProfile; ensureContainers(pid);
-    const habits = Object.values(db.habits[pid]||{});
-    const sel = $("analyticsHabit");
-    sel.innerHTML='';
-    habits.forEach(h=>{ const o=document.createElement('option'); o.value=h.id; o.textContent=h.name; sel.appendChild(o); });
-    if(habits.length===0){
-      $("completionRate").textContent='–'; $("streak").textContent='Current streak: –';
-      const ctx = $("chart"); ctx.getContext && ctx.getContext('2d').clearRect(0,0,ctx.width,ctx.height);
-      return;
-    }
-    if(!sel.value) sel.value = habits[0].id;
-    const h = habits.find(x=>x.id===sel.value);
-
-    const today = new Date($("dateInput").value + 'T00:00:00');
-    const labels = []; const data = [];
-    let successCount = 0; let totalCount = 0; let streak=0; let prevSuccess=true;
-
-    for(let i=range-1;i>=0;i--){
-      const d = new Date(today); d.setDate(d.getDate()-i);
-      const key = ymd(d); const val = (db.entries[pid][key]||{})[h.id];
-      const ok = isSuccess(h, val); if(ok) successCount++; totalCount++;
-      labels.push(key.slice(5)); // show MM-DD
-      data.push(h.type==='number' ? Number(val||0) : (ok?1:0));
-      // streak (ending today)
-      if(i===0){
-        // compute consecutive days up to today inclusive
-        let s=0;
-        for(let j=0;;j++){
-          const dd = new Date(today); dd.setDate(dd.getDate()-j);
-          const v = (db.entries[pid][ymd(dd)]||{})[h.id];
-          if(isSuccess(h, v)) s++; else break;
-        }
-        streak=s;
-      }
-    }
-    const rate = totalCount? Math.round((successCount/totalCount)*100):0;
-    $("completionRate").textContent = `${rate}%`;
-    $("streak").textContent = `Current streak: ${streak} day${streak===1?'':'s'}`;
-
-    const ctx = document.getElementById('chart');
-    if(chart) chart.destroy();
-    chart = new Chart(ctx, {
-      type: h.type==='number'? 'line':'bar',
-      data: { labels, datasets: [{ label: h.name, data, borderWidth:2 }] },
-      options: {
-        responsive: true,
-        plugins: { legend: { display:false } },
-        scales: {
-          y: { beginAtZero: true, ticks: { precision:0 } }
-        }
-      }
-    });
-  }
-
-  // ------------------ Export / Import ------------------
-  function exportData(){
-    const blob = new Blob([JSON.stringify(db,null,2)], {type:'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `couple-tracker-${new Date().toISOString().slice(0,10)}.json`;
-    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-  }
-  function importData(file){
-    const reader = new FileReader();
-    reader.onload = () => { try { const obj = JSON.parse(reader.result); if(obj && obj.profiles){ db = obj; save(); init(); alert('Import successful!'); } else alert('Invalid file.'); } catch(e){ alert('Invalid JSON.'); }};
-    reader.readAsText(file);
-  }
-
-  // ------------------ Init & Events ------------------
-  function init(){
-    // icons
-    lucide.createIcons();
-    renderProfiles();
-    // set default date to today
-    const today = new Date(); setDateInput(today);
-    renderTracker();
-    renderInsights();
-  }
-
-  // events
-  $("addPersonBtn").addEventListener('click', ()=>{
-    $("personName").value=''; $("personDialog").showModal();
-  });
-  $("savePerson").addEventListener('click', (e)=>{
-    e.preventDefault();
-    const name = $("personName").value.trim(); if(!name) return;
-    const color = $("personColor").value || '#ec4b83';
-    addPerson(name, color); $("personDialog").close();
-  });
-  $("profileSelect").addEventListener('change', ()=>{ db.currentProfile = $("profileSelect").value; save(); renderAll(); });
-
-  $("manageHabitsBtn").addEventListener('click', ()=>{ renderHabitManager(); $("habitDialog").showModal(); });
-  $("addHabitRow").addEventListener('click', (e)=>{ e.preventDefault(); addHabit(); });
-
-  $("exportBtn").addEventListener('click', exportData);
-  $("importInput").addEventListener('change', (e)=>{ const f = e.target.files?.[0]; if(f) importData(f); e.target.value=''; });
-
-  $("prevDay").addEventListener('click', ()=>{ const d=getSelectedDate(); d.setDate(d.getDate()-1); setDateInput(d); renderAll(); });
-  $("nextDay").addEventListener('click', ()=>{ const d=getSelectedDate(); d.setDate(d.getDate()+1); setDateInput(d); renderAll(); });
-  $("todayBtn").addEventListener('click', ()=>{ setDateInput(new Date()); renderAll(); });
-  $("dateInput").addEventListener('change', renderAll);
-
-  $("analyticsHabit").addEventListener('change', renderInsights);
-  $("last30").addEventListener('click', ()=>{ range=30; renderInsights(); });
-  $("last90").addEventListener('click', ()=>{ range=90; renderInsights(); });
-
-  function renderAll(){ renderTracker(); renderInsights(); }
-
-  init();
+    renderAll();
   </script>
 </body>
 </html>
